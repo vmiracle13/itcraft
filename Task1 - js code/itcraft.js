@@ -1,144 +1,180 @@
 (function() {
 
-  function PaidService(id, name, costs) {
-     this.id = id;
-     this.name = name;
-     this.costs = costs;
-  }
+    function PaidService(id, name, costs) {
+        this.id = id;
+        this.name = name;
+        this.costs = costs;
+    }
 
-  FixedMonthlyCostPaidService.prototype = Object.create(PaidService.prototype);
-  FixedHourlyCostPaidService.prototype = Object.create(PaidService.prototype);
+    FixedMonthlyCostPaidService.prototype = Object.create(PaidService.prototype);
+    FixedHourlyCostPaidService.prototype = Object.create(PaidService.prototype);
 
 
-  FixedMonthlyCostPaidService.prototype.calculateAverageMonthlyCosts = function() {
-     return this.costs;
-  };
+    FixedMonthlyCostPaidService.prototype.calculateAverageMonthlyCosts = function() {
+        return this.costs;
+    };
 
-  function FixedMonthlyCostPaidService() {
-     PaidService.apply(this, arguments);
-  }
+    function FixedMonthlyCostPaidService() {
+        PaidService.apply(this, arguments);
+    }
 
-  function FixedHourlyCostPaidService() {
-     PaidService.apply(this, arguments);
-  }
+    function FixedHourlyCostPaidService() {
+        PaidService.apply(this, arguments);
+    }
 
-  PaidService.prototype.calculateAverageMonthlyCosts = function() {
-     this.costs = costs;
-  };
+    PaidService.prototype.calculateAverageMonthlyCosts = function() {
+        this.costs = costs;
+    };
 
-  FixedHourlyCostPaidService.prototype.calculateAverageMonthlyCosts = function() {
-     var sum = this.costs;
-     return Math.round(30 * 24 * sum);
-  };
+    FixedHourlyCostPaidService.prototype.calculateAverageMonthlyCosts = function() {
+        return Math.round(30 * 24 * this.costs);
+    };
 
-  try {
-     let collection = {
-       'Google Orkut' : 11,
-       'Google Voice': 9.4,
-       'Youtube': 8064,
-       'Mandrill': 11.2,
-       'Google Finance': 7.8,
-       'Google Building Maker': 5347,
-       'LinkedIn': 6863
-     };
+    try {
+        let collection = {
+            'Google Orkut' : 11,
+            'Google Voice': 9.4,
+            'YouTube': 8064,
+            'Mandrill': 11.2,
+            'Google Finance': 7.8,
+            'LinkedIn': 6863,
+            'Google Building Maker': 5347
+        };
 
-     function createServiceObjects(data) {
-        let i = 1;
-        let array = [];
-        for (let key in data) {
-           if (!key || !data[key]) {
-              throw new SyntaxError("»сходные данные некорректны.");
-           }
-           if ( data[key] < 100) {
-              array.push( new FixedHourlyCostPaidService('service' + i, key, data[key]) );
-           } else {
-              array.push( new FixedMonthlyCostPaidService('service' + i, key, data[key]) );
-           }
-           i++;
+        //creation of array with objects of FixedHourlyCostPaidService and FixedMonthlyCostPaidService classes
+        function createServiceObjects(data) {
+            let i = 1;
+            let servicesList = [];
+
+            if (Object.keys(data).length == 0) {
+                throw new SyntaxError("Empty data object. Please enter the correct data.");
+            }
+
+            for (let key in data) {
+                if (!key || !data[key]) {
+                    throw new SyntaxError("The incorrect input data.");
+                }
+                if (data[key] < 100) {
+                    servicesList.push( new FixedHourlyCostPaidService('service' + i, key, data[key]) );
+                    i++;
+                }
+            }
+
+            for (let key in data) {
+                if (data[key] > 100) {
+                    servicesList.push( new FixedMonthlyCostPaidService('service' + i, key, data[key]) );
+                    i++;
+                }
+            }
+
+            return servicesList;
         }
 
-        return array;
-     }
+        let arrayObjects = createServiceObjects(collection);
 
-     let arrayObjects = createServiceObjects(collection);
+        let arrayOfCalculatedCosts = arrayObjects.map( function(obj) {
+            let service = {};
 
-     let arrayOfCalculatedCosts = arrayObjects.map( function(obj) {
-        obj.costs = obj.calculateAverageMonthlyCosts();
-        return obj;
-     });
+            for (let key in obj) {
+                if (key == 'id' || key == 'name') {
+                    service[key] = obj[key];
+                }
+            }
 
-     function sortServices(arr) {
-        return arr.sort( function(prev, next) {
-           if ( next.costs == prev.costs) {
-              return prev.name.localeCompare(next.name);
-           }
-           return next.costs - prev.costs;
+            service.costs = obj.calculateAverageMonthlyCosts();
+            return service;
         });
-     }
 
-     let arrayForPrint = sortServices(arrayOfCalculatedCosts);
+        // sort of the array of objects with decreasing of monthly costs
+        function sortServices(arr) {
+            return arr.sort( function(prev, next) {
 
-     /* сортировка сервисов по убыванию среднемес€чных затрат. ѕри совпадении суммы затрат
-     сортировка по алфавитному пор€дку названий сервисов */
-     function printServiceList(sorted) {
-        let listForPrint = '';
+                if ( next.costs == prev.costs) {
+                    return prev.name.localeCompare(next.name);
+                }
 
-        for (let i = 0; i < sorted.length; i++) {
-           listForPrint = listForPrint + sorted[i].id + ' / ' + sorted[i].name + ' / ' + sorted[i].costs + '\n';
+                return next.costs - prev.costs;
+            });
         }
 
-        alert("sorted \n" + listForPrint);
-     }
+        let arrayForPrint = sortServices(arrayOfCalculatedCosts);
 
-     printServiceList(arrayForPrint);
+        //print the array of the objects
+        function printServiceList(services) {
+            let listForPrint = '';
 
-     //значени€ свойства name в первых 5 элементах
-     function printFirstServices(sorted, number) {
-        let listForPrint = '';
+            for (let i = 0; i < services.length; i++) {
+                listForPrint = listForPrint + services[i].id + ' / ' + services[i].name + ' / ' + services[i].costs + '\n';
+            }
 
-        for (let i = 0; i < number; i++ ) {
-           listForPrint = listForPrint + sorted[i].name + '\n';
+            alert("sorted services: \n" + listForPrint);
         }
 
-        alert(listForPrint);
-     }
+        printServiceList(arrayForPrint);
 
-     printFirstServices(arrayForPrint, 5);
+        //print first 5 (number) values of names of the sorted array (arrayForPrint)
+        function printFirstServices(sortedArray, number) {
+            let listForPrint = '';
 
-     //значени€ свойства id в последних 3 элементах
-     function printLastServices(sorted, number) {
-        let listForPrint = '';
+            for (let i = 0; i < number; i++ ) {
+                listForPrint = listForPrint + sortedArray[i].name + '\n';
+            }
 
-        for (let i = arrayForPrint.length - number; i < arrayForPrint.length; i++ ) {
-           listForPrint = listForPrint + sorted[i].id + '\n';
+            alert(listForPrint);
         }
 
-        alert(listForPrint);
-     }
+        printFirstServices(arrayForPrint, 5);
 
-     printLastServices(arrayForPrint, 3);
+        //print last 3 values of id of the sorted array (arrayForPrint)
+        function printLastServices(sortedServices, number) {
+            let listForPrint = '';
 
-     //сравнить затраты на два сервиса и вывести их в пор€дке убывани€. ≈сли равны, то через слеш /
-     function compareServiceCosts(service1, service2, list) {
-        let obj1 = list.filter(x => x.name.toLowerCase() == service1.toLowerCase())[0];
-        let obj2 = list.filter(x => x.name.toLowerCase() == service2.toLowerCase())[0];
+            for (let i = sortedServices.length - number; i < sortedServices.length; i++ ) {
+                listForPrint = listForPrint + sortedServices[i].id + '\n';
+            }
 
-        if ( obj1.costs < obj2.costs ) {
-           alert(obj2.name  + '\n' +  obj1.name);
-        } else if (obj1.costs > obj2.costs) {
-           alert(obj1.name + '\n' + obj2.name);
-        } else {
-           alert(obj1.name + " / " + obj2.name);
+            alert(listForPrint);
         }
-     }
 
-     compareServiceCosts('YouTube', 'Mandrill', arrayForPrint);
-  }
+        printLastServices(arrayForPrint, 3);
 
-  catch(error) {
-     if (error.name == 'SyntaxError') {
-        alert(error.message);
-     }
-  }
+        /* compare the monthly costs of service1 and service2. Print the service names with decreasing of the monthly costs
+         If they are equal, print them with '/' between */
+
+        function compareServiceCosts(service1, service2, list) {
+            try {
+                if (!service1 || !service2 || !list || list.length == 0) {
+                    throw new SyntaxError("Please check the input data.");
+                }
+
+                let obj1 = list.filter(x => x.name.toLowerCase() == service1.toLowerCase())[0];
+                let obj2 = list.filter(x => x.name.toLowerCase() == service2.toLowerCase())[0];
+
+                if (obj1 == undefined || obj2 == undefined) {
+                    throw new SyntaxError("Please recheck the service names.")
+                }
+
+                if (obj1.costs < obj2.costs) {
+                    alert(obj2.name  + '\n' +  obj1.name);
+                } else if (obj1.costs > obj2.costs) {
+                    alert(obj1.name + '\n' + obj2.name);
+                } else {
+                    alert(obj1.name + " / " + obj2.name);
+                }
+            }
+
+            catch(e) {
+                alert(e.message);
+            }
+        }
+
+        compareServiceCosts('Mandrill', 'Youtube', arrayForPrint);
+    }
+
+    catch(error) {
+        if (error.name == 'SyntaxError') {
+            alert(error.message);
+        }
+    }
 
 })();
